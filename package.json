@@ -21,6 +21,7 @@
     "lint:fix": "eslint . --fix && prettier --write {docs,src,test}/**/*.{css,js,ts,md,html}",
     "prepare": "husky install",
     "prepublishOnly": "gulp build",
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' '*.js' '*.json'",
     "test": "mocha -r ts-node/register test/**/*.test.[tj]s --exit",
     "test:coverage": "nyc npm run test",
     "test:single": "mocha -r ts-node/register --exit",
@@ -33,10 +34,10 @@
   },
   "license": "MIT",
   "keywords": [
-    "node-red",
-    "home-assistant",
-    "home assistant",
-    "home automation",
+    "xnode-red",
+    "xhome-assistant",
+    "xhome assistant",
+    "xhome automation",
     "websocket"
   ],
   "node-red": {
@@ -52,6 +53,9 @@
     "compare-versions": "6.1.0",
     "cron": "2.4.0",
     "debug": "4.3.4",
+    "epdoc-node-red-hautil": "^1.0.3",
+    "epdoc-timeutil": "^2.3.6",
+    "epdoc-util": "^0.5.1",
     "flat": "5.0.2",
     "geolib": "3.3.4",
     "home-assistant-js-websocket": "8.0.1",

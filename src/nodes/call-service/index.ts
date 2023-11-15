@@ -8,15 +8,15 @@ import { BaseNode } from '../../types/nodes';
 import CallService from './controller';
 
 export default function callServiceNode(this: BaseNode, config: NodeDef) {
-    RED.nodes.createNode(this, config);
+  RED.nodes.createNode(this, config);
 
-    this.config = migrate(config);
-    checkValidServerConfig(this, this.config.server);
-    const status = new Status(this);
-    this.controller = new CallService({
-        node: this,
-        config: this.config,
-        RED,
-        status,
-    });
+  this.config = migrate(config);
+  checkValidServerConfig(this, this.config.server);
+  const status = new Status(this);
+  this.controller = new CallService({
+    node: this,
+    config: this.config,
+    RED,
+    status,
+  });
 }

@@ -7,88 +7,83 @@ import { TriggerPayload } from '../integration/BidirectionalEntityIntegration';
 import OutputController from './OutputController';
 
 export default function ExposeAsMixin<
-    TBase extends GConstructor<OutputController>
+  TBase extends GConstructor<OutputController>
 >(Base: TBase) {
-    return class ExposeAsController extends Base {
-        public exposeAsConfigEvents?: Events;
-        public exposeAsConfigNode?: EntityConfigNode;
+  return class ExposeAsController extends Base {
+    public exposeAsConfigEvents?: Events;
+    public exposeAsConfigNode?: EntityConfigNode;
 
-        setExposeAsConfigNode(exposeAsConfigNode?: EntityConfigNode) {
-            this.exposeAsConfigNode = exposeAsConfigNode;
+    setExposeAsConfigNode(exposeAsConfigNode?: EntityConfigNode) {
+      this.exposeAsConfigNode = exposeAsConfigNode;
 
-            if (exposeAsConfigNode) {
-                this.exposeAsConfigEvents = new Events({
-                    node: this.node,
-                    emitter: exposeAsConfigNode,
-                });
-                this.exposeAsConfigEvents.addListener(
-                    HaEvent.AutomationTriggered,
-                    this.#onTriggered.bind(this)
-                );
-            }
-        }
+      if (exposeAsConfigNode) {
+        this.exposeAsConfigEvents = new Events({
+          node: this.node,
+          emitter: exposeAsConfigNode,
+        });
+        this.exposeAsConfigEvents.addListener(
+          HaEvent.AutomationTriggered,
+          this.#onTriggered.bind(this)
+        );
+      }
+    }
 
-        get isEnabled(): boolean {
-            return this.exposeAsConfigNode?.state?.isEnabled() ?? true;
-        }
+    get isEnabled(): boolean {
+      return this.exposeAsConfigNode?.state?.isEnabled() ?? true;
+    }
 
-        // Find the number of outputs by looking at the number of wires
-        get #numberOfOutputs(): number {
-            if ('wires' in this.node && Array.isArray(this.node.wires)) {
-                return this.node.wires.length;
-            }
+    // Find the number of outputs by looking at the number of wires
+    get #numberOfOutputs(): number {
+      if ('wires' in this.node && Array.isArray(this.node.wires)) {
+        return this.node.wires.length;
+      }
 
-            return 0;
-        }
+      return 0;
+    }
 
-        #onTriggered(data: TriggerPayload) {
-            if (!this.isEnabled) return;
+    #onTriggered(data: TriggerPayload) {
+      if (!this.isEnabled) return;
 
-            const outputCount = this.#numberOfOutputs;
+      const outputCount = this.#numberOfOutputs;
 
-            // If there are no outputs, there is nothing to do
-            if (outputCount === 0) return;
+      // If there are no outputs, there is nothing to do
+      if (outputCount === 0) return;
 
-            // Remove any paths that are greater than the number of outputs
-            const paths = data.output_path
-                .split(',')
-                .map((path) => Number(path))
-                .filter((path) => path <= outputCount);
+      // Remove any paths that are greater than the number of outputs
+      const paths = data.output_path
+        .split(',')
+        .map((path) => Number(path))
+        .filter((path) => path <= outputCount);
 
-            // If there are no paths, there is nothing to do
-            if (paths.length === 0) return;
+      // If there are no paths, there is nothing to do
+      if (paths.length === 0) return;
 
-            let payload: NodeMessage | (NodeMessage | null)[];
+      let payload: NodeMessage | (NodeMessage | null)[];
 
-            // If there is only one path and it is 0 or 1, return the payload as is
-            if (paths.length === 1 && paths.includes(1)) {
-                payload = data.message;
-            } else if (paths.includes(0)) {
-                // create an array the size of the number of outputs and fill it with the payload
-                payload = new Array(outputCount).fill([data.message]);
-            } else {
-                // create an array and fill it with the message only if index exists in paths
-                payload = new Array(outputCount)
-                    .fill(0)
-                    .map((_, index) =>
-                        paths.includes(index + 1) ? data.message : null
-                    );
-            }
+      // If there is only one path and it is 0 or 1, return the payload as is
+      if (paths.length === 1 && paths.includes(1)) {
+        payload = data.message;
+      } else if (paths.includes(0)) {
+        // create an array the size of the number of outputs and fill it with the payload
+        payload = new Array(outputCount).fill([data.message]);
+      } else {
+        // create an array and fill it with the message only if index exists in paths
+        payload = new Array(outputCount)
+          .fill(0)
+          .map((_, index) => (paths.includes(index + 1) ? data.message : null));
+      }
 
-            this.status.setSuccess('home-assistant.status.triggered');
-            this.node.send(payload);
-        }
+      this.status.setSuccess('home-assistant.status.triggered');
+      this.node.send(payload);
+    }
 
-        public getExposeAsConfigEvents(): Events | undefined {
-            return this.exposeAsConfigEvents;
-        }
+    public getExposeAsConfigEvents(): Events | undefined {
+      return this.exposeAsConfigEvents;
+    }
 
-        public enableExposeAs(enable = true) {
-            this.exposeAsConfigNode?.integration.updateStateAndAttributes(
-                enable,
-                {}
-            );
-            this.exposeAsConfigNode?.state.setEnabled(enable);
-        }
-    };
+    public enableExposeAs(enable = true) {
+      this.exposeAsConfigNode?.integration.updateStateAndAttributes(enable, {});
+      this.exposeAsConfigNode?.state.setEnabled(enable);
+    }
+  };
 }

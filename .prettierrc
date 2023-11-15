@@ -1,6 +1,7 @@
 {
-    "tabWidth": 4,
+    "tabWidth": 2,
     "singleQuote": true,
+    "prefer-regex-literals": false,
     "overrides": [
         {
             "files": ["*.json", "*.md", "*.yaml", "*.yml"],

@@ -1,6 +1,6 @@
 import {
-    HassEntity as HomeAssistantEntity,
-    HassServices,
+  HassEntity as HomeAssistantEntity,
+  HassServices,
 } from 'home-assistant-js-websocket';
 
 import ClientEvents from '../../common/events/ClientEvents';
@@ -12,109 +12,109 @@ import { HassEntity, HassStateChangedEvent } from '../../types/home-assistant';
 import { ServerNode } from '../../types/nodes';
 
 interface HomeAssistantStatesContext {
-    [entity_id: string]: HomeAssistantEntity;
+  [entity_id: string]: HomeAssistantEntity;
 }
 
 interface HomeAssistantServerContext {
-    states: HomeAssistantStatesContext;
-    services: HassServices;
-    isConnected: boolean;
-    isRunning: boolean;
+  states: HomeAssistantStatesContext;
+  services: HassServices;
+  isConnected: boolean;
+  isRunning: boolean;
 }
 
 interface HomeAssistantGlobalContext {
-    [serverName: string]: HomeAssistantServerContext;
+  [serverName: string]: HomeAssistantServerContext;
 }
 
 const NAMESPACE = 'homeassistant';
 
 export default class EditorContext {
-    #clientEvents: ClientEvents;
-    #node: ServerNode<Credentials>;
+  #clientEvents: ClientEvents;
+  #node: ServerNode<Credentials>;
 
-    constructor(node: ServerNode<Credentials>, clientEvents: ClientEvents) {
-        this.#clientEvents = clientEvents;
-        this.#node = node;
+  constructor(node: ServerNode<Credentials>, clientEvents: ClientEvents) {
+    this.#clientEvents = clientEvents;
+    this.#node = node;
 
-        const globalContext = this.#node.context().global.get(NAMESPACE) as
-            | HomeAssistantGlobalContext
-            | undefined;
+    const globalContext = this.#node.context().global.get(NAMESPACE) as
+      | HomeAssistantGlobalContext
+      | undefined;
 
-        if (!globalContext?.[this.#serverName]) {
-            if (!globalContext) {
-                this.#node.context().global.set(NAMESPACE, {});
-            }
-            this.#resetContext();
-        }
-
-        this.#startListeners();
+    if (!globalContext?.[this.#serverName]) {
+      if (!globalContext) {
+        this.#node.context().global.set(NAMESPACE, {});
+      }
+      this.#resetContext();
     }
 
-    get #serverName() {
-        return toCamelCase(this.#node.config.name);
-    }
+    this.#startListeners();
+  }
 
-    #resetContext() {
-        this.#node.context().global.set(`${NAMESPACE}.${this.#serverName}`, {
-            states: {},
-            services: {},
-            isConnected: false,
-            isRunning: false,
-        });
-    }
+  get #serverName() {
+    return toCamelCase(this.#node.config.name);
+  }
 
-    #startListeners() {
-        // Setup event listeners
-        this.#clientEvents.addListeners(this, [
-            [ClientEvent.Close, this.#onHaClose],
-            [ClientEvent.Open, this.#onHaOpen],
-            [ClientEvent.Connecting, this.#onHaConnecting],
-            [ClientEvent.Error, this.#onHaError],
-            [ClientEvent.Running, this.#onHaRunning],
-            [ClientEvent.StatesLoaded, this.#onHaStatesLoaded],
-            [HA_EVENT_SERVICES_UPDATED, this.#onHaServicesUpdated],
-            [`ha_events:${HaEvent.StateChanged}`, this.#onHaStateChanged],
-        ]);
-    }
+  #resetContext() {
+    this.#node.context().global.set(`${NAMESPACE}.${this.#serverName}`, {
+      states: {},
+      services: {},
+      isConnected: false,
+      isRunning: false,
+    });
+  }
 
-    #setOnContext(key: string, value: any) {
-        const serverContext = `${NAMESPACE}.${this.#serverName}.${key}`;
-        this.#node.context().global.set(serverContext, value);
-    }
+  #startListeners() {
+    // Setup event listeners
+    this.#clientEvents.addListeners(this, [
+      [ClientEvent.Close, this.#onHaClose],
+      [ClientEvent.Open, this.#onHaOpen],
+      [ClientEvent.Connecting, this.#onHaConnecting],
+      [ClientEvent.Error, this.#onHaError],
+      [ClientEvent.Running, this.#onHaRunning],
+      [ClientEvent.StatesLoaded, this.#onHaStatesLoaded],
+      [HA_EVENT_SERVICES_UPDATED, this.#onHaServicesUpdated],
+      [`ha_events:${HaEvent.StateChanged}`, this.#onHaStateChanged],
+    ]);
+  }
 
-    #onHaOpen() {
-        this.#setOnContext('isConnected', true);
-    }
+  #setOnContext(key: string, value: any) {
+    const serverContext = `${NAMESPACE}.${this.#serverName}.${key}`;
+    this.#node.context().global.set(serverContext, value);
+  }
 
-    #onHaStateChanged(data: HassStateChangedEvent) {
-        const entity = data.event;
-        this.#setOnContext(`states["${entity.entity_id}"]`, entity.new_state);
-    }
+  #onHaOpen() {
+    this.#setOnContext('isConnected', true);
+  }
 
-    #onHaStatesLoaded(states: HassEntity[]) {
-        this.#setOnContext('states', states);
-    }
+  #onHaStateChanged(data: HassStateChangedEvent) {
+    const entity = data.event;
+    this.#setOnContext(`states["${entity.entity_id}"]`, entity.new_state);
+  }
 
-    #onHaServicesUpdated(services: HassServices) {
-        this.#setOnContext('services', services);
-    }
+  #onHaStatesLoaded(states: HassEntity[]) {
+    this.#setOnContext('states', states);
+  }
 
-    #onHaConnecting() {
-        this.#setOnContext('isConnected', false);
-        this.#setOnContext('isRunning', false);
-    }
+  #onHaServicesUpdated(services: HassServices) {
+    this.#setOnContext('services', services);
+  }
 
-    #onHaClose() {
-        this.#setOnContext('isConnected', false);
-        this.#setOnContext('isRunning', false);
-    }
+  #onHaConnecting() {
+    this.#setOnContext('isConnected', false);
+    this.#setOnContext('isRunning', false);
+  }
 
-    #onHaRunning() {
-        this.#setOnContext('isRunning', true);
-    }
+  #onHaClose() {
+    this.#setOnContext('isConnected', false);
+    this.#setOnContext('isRunning', false);
+  }
 
-    #onHaError() {
-        this.#setOnContext('isConnected', false);
-        this.#setOnContext('isRunning', false);
-    }
+  #onHaRunning() {
+    this.#setOnContext('isRunning', true);
+  }
+
+  #onHaError() {
+    this.#setOnContext('isConnected', false);
+    this.#setOnContext('isRunning', false);
+  }
 }

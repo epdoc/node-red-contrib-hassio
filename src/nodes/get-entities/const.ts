@@ -1,6 +1,6 @@
 export enum OutputType {
-    Array = 'array',
-    Count = 'count',
-    Random = 'random',
-    Split = 'split',
+  Array = 'array',
+  Count = 'count',
+  Random = 'random',
+  Split = 'split',
 }

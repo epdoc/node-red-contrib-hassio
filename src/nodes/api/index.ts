@@ -8,15 +8,15 @@ import { BaseNode } from '../../types/nodes';
 import Api from './controller';
 
 export default function apiNode(this: BaseNode, config: NodeDef) {
-    RED.nodes.createNode(this, config);
+  RED.nodes.createNode(this, config);
 
-    this.config = migrate(config);
-    checkValidServerConfig(this, this.config.server);
-    const status = new Status(this);
-    this.controller = new Api({
-        node: this,
-        config: this.config,
-        RED,
-        status,
-    });
+  this.config = migrate(config);
+  checkValidServerConfig(this, this.config.server);
+  const status = new Status(this);
+  this.controller = new Api({
+    node: this,
+    config: this.config,
+    RED,
+    status,
+  });
 }

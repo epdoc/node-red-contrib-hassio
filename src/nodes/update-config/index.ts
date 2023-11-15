@@ -8,74 +8,74 @@ import { migrate } from '../../helpers/migrate';
 import { getConfigNodes } from '../../helpers/node';
 import { getHomeAssistant } from '../../homeAssistant';
 import {
-    BaseNode,
-    EntityBaseNodeProperties,
-    OutputProperty,
+  BaseNode,
+  EntityBaseNodeProperties,
+  OutputProperty,
 } from '../../types/nodes';
 import UpdateConfigController from './UpdateConfigController';
 
 export interface UpdateConfigNodeProperties extends EntityBaseNodeProperties {
-    outputProperties: OutputProperty[];
+  outputProperties: OutputProperty[];
 }
 
 export interface UpdateConfigNode extends BaseNode {
-    config: UpdateConfigNodeProperties;
+  config: UpdateConfigNodeProperties;
 }
 
 const inputs: NodeInputs = {
-    id: {
-        messageProp: 'payload.id',
-        configProp: 'entityConfig',
-    },
-    name: {
-        messageProp: 'payload.name',
-    },
-    icon: {
-        messageProp: 'payload.icon',
-    },
-    entityPicture: {
-        messageProp: 'payload.entityPicture',
-    },
-    options: {
-        messageProp: 'payload.options',
-    },
+  id: {
+    messageProp: 'payload.id',
+    configProp: 'entityConfig',
+  },
+  name: {
+    messageProp: 'payload.name',
+  },
+  icon: {
+    messageProp: 'payload.icon',
+  },
+  entityPicture: {
+    messageProp: 'payload.entityPicture',
+  },
+  options: {
+    messageProp: 'payload.options',
+  },
 };
 
 const inputSchema: Joi.ObjectSchema = Joi.object({
-    id: Joi.string().required(),
-    name: Joi.string().allow(''),
-    icon: Joi.string().allow(''),
-    entityPicture: Joi.string().allow(''),
-    options: Joi.array().items(Joi.string()),
+  id: Joi.string().required(),
+  name: Joi.string().allow(''),
+  icon: Joi.string().allow(''),
+  entityPicture: Joi.string().allow(''),
+  options: Joi.array().items(Joi.string()),
 });
 
 export default function UpdateConfig(
-    this: UpdateConfigNode,
-    config: UpdateConfigNodeProperties
+  this: UpdateConfigNode,
+  config: UpdateConfigNodeProperties
 ) {
-    RED.nodes.createNode(this, config);
+  RED.nodes.createNode(this, config);
 
-    this.config = migrate(config);
+  this.config = migrate(config);
 
-    const { entityConfigNode, serverConfigNode } = getConfigNodes(this);
-    const homeAssistant = getHomeAssistant(serverConfigNode);
-    const status = new Status({
-        config: serverConfigNode.config,
-        node: this,
-    });
-    const controllerDeps = createControllerDependencies(this, homeAssistant);
-    const inputService = new InputService<UpdateConfigNodeProperties>({
-        inputs,
-        nodeConfig: this.config,
-        schema: inputSchema,
-    });
+  const { entityConfigNode, serverConfigNode } = getConfigNodes(this);
+  const homeAssistant = getHomeAssistant(serverConfigNode);
+  const status = new Status({
+    config: serverConfigNode.config,
+    node: this,
+  });
+  const controllerDeps = createControllerDependencies(this, homeAssistant);
+  const inputService = new InputService<UpdateConfigNodeProperties>({
+    inputs,
+    nodeConfig: this.config,
+    schema: inputSchema,
+  });
 
-    // eslint-disable-next-line no-new
-    new UpdateConfigController({
-        inputService,
-        integration: entityConfigNode.integration,
-        node: this,
-        status,
-        ...controllerDeps,
-    });
+  // eslint-disable-next-line no-new
+  new UpdateConfigController({
+    inputService,
+    integration: entityConfigNode.integration,
+    node: this,
+    status,
+    ...controllerDeps,
+  });
 }

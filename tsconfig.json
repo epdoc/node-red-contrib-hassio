@@ -8,6 +8,7 @@
     "allowJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false,
     "noImplicitAny": true,
     "strict": true,
     "moduleResolution": "node",

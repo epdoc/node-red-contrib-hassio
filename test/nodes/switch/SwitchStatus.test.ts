@@ -17,72 +17,72 @@ chai.use(sinonChai);
 const fakeNow = new Date(2012, 0, 12, 12, 12, 12);
 
 describe('SwitchEntityStatus', function () {
-    let entityConfigEvents: StubbedInstance<Events>;
-    let entityConfigNode: StubbedInstance<EntityConfigNode>;
-    let nodeStub: StubbedInstance<SwitchNode>;
-    let nodeApiStub: StubbedInstance<NodeAPI>;
-    let serverNodeConfigStub: StubbedInstance<ServerNodeConfig>;
-    let stateStub: StubbedInstance<State>;
-    let switchNodeConfigStub: StubbedInstance<SwitchNodeProperties>;
+  let entityConfigEvents: StubbedInstance<Events>;
+  let entityConfigNode: StubbedInstance<EntityConfigNode>;
+  let nodeStub: StubbedInstance<SwitchNode>;
+  let nodeApiStub: StubbedInstance<NodeAPI>;
+  let serverNodeConfigStub: StubbedInstance<ServerNodeConfig>;
+  let stateStub: StubbedInstance<State>;
+  let switchNodeConfigStub: StubbedInstance<SwitchNodeProperties>;
 
-    let status: SwitchStatus;
+  let status: SwitchStatus;
 
-    before(function () {
-        entityConfigEvents = stubInterface<Events>();
-        entityConfigNode = stubInterface<EntityConfigNode>();
-        nodeApiStub = stubInterface<NodeAPI>();
-        nodeStub = stubInterface<SwitchNode>();
-        serverNodeConfigStub = stubInterface<ServerNodeConfig>();
-        stateStub = stubInterface<State>();
-        switchNodeConfigStub = stubInterface<SwitchNodeProperties>();
+  before(function () {
+    entityConfigEvents = stubInterface<Events>();
+    entityConfigNode = stubInterface<EntityConfigNode>();
+    nodeApiStub = stubInterface<NodeAPI>();
+    nodeStub = stubInterface<SwitchNode>();
+    serverNodeConfigStub = stubInterface<ServerNodeConfig>();
+    stateStub = stubInterface<State>();
+    switchNodeConfigStub = stubInterface<SwitchNodeProperties>();
 
-        setRED(nodeApiStub);
+    setRED(nodeApiStub);
+  });
+
+  beforeEach(function () {
+    nodeApiStub._.returnsArg(0);
+    nodeStub.status.returns();
+    sinon.useFakeTimers(fakeNow.getTime());
+
+    nodeStub.config = switchNodeConfigStub;
+
+    serverNodeConfigStub.statusSeparator = 'at ';
+    serverNodeConfigStub.statusYear = 'hidden';
+    serverNodeConfigStub.statusMonth = 'short';
+    serverNodeConfigStub.statusDay = 'numeric';
+    serverNodeConfigStub.statusHourCycle = 'h23';
+    serverNodeConfigStub.statusTimeFormat = 'h:m';
+
+    entityConfigNode.state = stateStub;
+
+    status = new SwitchStatus({
+      entityConfigEvents,
+      entityConfigNode,
+      config: serverNodeConfigStub,
+      node: nodeStub,
     });
+  });
 
-    beforeEach(function () {
-        nodeApiStub._.returnsArg(0);
-        nodeStub.status.returns();
-        sinon.useFakeTimers(fakeNow.getTime());
+  afterEach(function () {
+    sinon.reset();
+    resetStubInterface(nodeStub);
+    resetStubInterface(stateStub);
+    resetStubInterface(entityConfigNode);
+  });
 
-        nodeStub.config = switchNodeConfigStub;
+  describe('set', function () {
+    it('default status should be a yellow dot', function () {
+      const expectedStatus = {
+        fill: 'yellow',
+        shape: 'dot',
+        text: '',
+      };
+      status.set();
 
-        serverNodeConfigStub.statusSeparator = 'at ';
-        serverNodeConfigStub.statusYear = 'hidden';
-        serverNodeConfigStub.statusMonth = 'short';
-        serverNodeConfigStub.statusDay = 'numeric';
-        serverNodeConfigStub.statusHourCycle = 'h23';
-        serverNodeConfigStub.statusTimeFormat = 'h:m';
-
-        entityConfigNode.state = stateStub;
-
-        status = new SwitchStatus({
-            entityConfigEvents,
-            entityConfigNode,
-            config: serverNodeConfigStub,
-            node: nodeStub,
-        });
+      expect(nodeStub.status).to.have.been.calledOnce;
+      expect(nodeStub.status).to.have.been.calledOnceWithExactly(
+        expectedStatus
+      );
     });
-
-    afterEach(function () {
-        sinon.reset();
-        resetStubInterface(nodeStub);
-        resetStubInterface(stateStub);
-        resetStubInterface(entityConfigNode);
-    });
-
-    describe('set', function () {
-        it('default status should be a yellow dot', function () {
-            const expectedStatus = {
-                fill: 'yellow',
-                shape: 'dot',
-                text: '',
-            };
-            status.set();
-
-            expect(nodeStub.status).to.have.been.calledOnce;
-            expect(nodeStub.status).to.have.been.calledOnceWithExactly(
-                expectedStatus
-            );
-        });
-    });
+  });
 });

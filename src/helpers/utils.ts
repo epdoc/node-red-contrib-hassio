@@ -2,7 +2,6 @@ import EventEmitter from 'events';
 
 import { EventsList } from '../common/events/Events';
 import { RED } from '../globals';
-import { DeviceNode } from '../nodes/device';
 import { BaseNode } from '../types/nodes';
 
 export function shouldInclude(
@@ -178,9 +177,10 @@ export function isNodeRedEnvVar(envVar: string) {
 }
 
 export function checkValidServerConfig(
-    node: BaseNode | DeviceNode,
+    node: BaseNode,
     serverNodeId?: string
 ): boolean {
+    // @ts-ignore this
     const serverConfigNode = RED.nodes.getNode(serverNodeId ?? '');
 
     if (!serverConfigNode) {

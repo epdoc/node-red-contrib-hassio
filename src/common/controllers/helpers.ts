@@ -11,24 +11,24 @@ import TypedInputService from '../services/TypedInputService';
  * @returns The dependencies needed for a BaseNode controller.
  */
 export function createControllerDependencies(
-    node: BaseNode,
-    homeAssistant: HomeAssistant
+  node: BaseNode,
+  homeAssistant: HomeAssistant
 ) {
-    const jsonataService = new JSONataService({
-        homeAssistant,
-        node,
-    });
-    const nodeRedContextService = new NodeRedContextService(node);
-    const typedInputService = new TypedInputService({
-        nodeConfig: node.config,
-        context: nodeRedContextService,
-        jsonata: jsonataService,
-    });
+  const jsonataService = new JSONataService({
+    homeAssistant,
+    node,
+  });
+  const nodeRedContextService = new NodeRedContextService(node);
+  const typedInputService = new TypedInputService({
+    nodeConfig: node.config,
+    context: nodeRedContextService,
+    jsonata: jsonataService,
+  });
 
-    return {
-        homeAssistant,
-        jsonataService,
-        nodeRedContextService,
-        typedInputService,
-    };
+  return {
+    homeAssistant,
+    jsonataService,
+    nodeRedContextService,
+    typedInputService,
+  };
 }
